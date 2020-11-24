@@ -1,11 +1,11 @@
-" beatmania
+" beatbanana
 " Author: skanehira
 " License: MIT
 
-hi! beatmania_bar ctermfg=110 ctermbg=110
-hi! beatmania_bottom_bar ctermfg=17 ctermbg=17
-hi! beatmania_hit ctermfg=203  ctermbg=203
-hi! beatmania_hit_good ctermfg=107  ctermbg=107
+hi! beatbanana_bar ctermfg=110 ctermbg=110
+hi! beatbanana_bottom_bar ctermfg=17 ctermbg=17
+hi! beatbanana_hit ctermfg=203  ctermbg=203
+hi! beatbanana_hit_good ctermfg=107  ctermbg=107
 
 let s:bottom_bar_winid_set = {}
 " {
@@ -40,7 +40,7 @@ function! s:new_bar(opt, timer) abort
         \ 'minwidth': strlen(text),
         \ })
 
-  call win_execute(winid, 'syntax match beatmania_bar /0/')
+  call win_execute(winid, 'syntax match beatbanana_bar /0/')
 
   call timer_start(60, function("s:move_down", [winid, a:opt.press_key]), {
         \ 'repeat': -1,
@@ -80,12 +80,12 @@ function! s:make_bottom_bar(opt) abort
         \ 'minwidth': strlen(text),
         \ })
 
-  call win_execute(winid, 'syntax match beatmania_bottom_bar /1/')
+  call win_execute(winid, 'syntax match beatbanana_bottom_bar /1/')
   let s:bottom_bar_winid_set[a:opt.press_key] = winid
 endfunction
 
 function! s:restore_bottom_bar_highlight(winid, timer) abort
-  call win_execute(a:winid, 'syntax match beatmania_bottom_bar /1/')
+  call win_execute(a:winid, 'syntax match beatbanana_bottom_bar /1/')
 endfunction
 
 function! s:collision_detection(key) abort
@@ -103,15 +103,15 @@ endfunction
 function! s:press_bottom_bar(key) abort
   let winid = s:bottom_bar_winid_set[a:key]
   if s:collision_detection(a:key)
-    call win_execute(winid, 'syntax match beatmania_hit_good /1/')
+    call win_execute(winid, 'syntax match beatbanana_hit_good /1/')
   else
-    call win_execute(winid, 'syntax match beatmania_hit /1/')
+    call win_execute(winid, 'syntax match beatbanana_hit /1/')
   endif
   call timer_start(150, function('s:restore_bottom_bar_highlight', [winid]))
 endfunction
 
 function! s:start() abort
-  tabnew beatmania
+  tabnew beatbanana
   let s:bufid = bufnr()
   let s:winid = win_getid()
   let s:winheight = winheight(s:winid) -1
