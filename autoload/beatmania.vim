@@ -120,7 +120,7 @@ function! s:start() abort
 
   let col_len = s:winwidth / 8 - 4
   let col_pos = 4
-  for i in range(3)
+  for i in range(8)
     let press_key = s:bottom_bar_keys[i]
     let opt = {
           \ 'press_key': press_key,
