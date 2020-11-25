@@ -24,6 +24,8 @@ let s:bar_winid_set = {
       \ 'l': [],
       \ }
 
+let s:bar_timers = []
+
 function! s:make_bar_text(word, col_len) abort
   let text = ''
   for i in range(a:col_len)
@@ -42,18 +44,22 @@ function! s:new_bar(opt, timer) abort
 
   call win_execute(winid, 'syntax match beatbanana_bar /0/')
 
-  call timer_start(60, function("s:move_down", [winid, a:opt.press_key]), {
+  let timer = timer_start(60, function("s:move_down", [winid, a:opt.press_key]), {
         \ 'repeat': -1,
         \ })
+  call add(s:bar_timers, timer)
   call add(s:bar_winid_set[a:opt.press_key], winid)
 endfunction
 
 function! s:make_bar(opt, timer) abort
-  call timer_start(rand(srand()) % 1000, function('s:new_bar', [a:opt]))
+  call add(s:bar_timers, timer_start(rand(srand()) % 1000, function('s:new_bar', [a:opt])))
 endfunction
 
 function! s:move_down(winid, press_key, timer) abort
   let opt = popup_getpos(a:winid)
+  if empty(opt)
+    return
+  endif
   if opt.line is# s:winheight
     call timer_stop(a:timer)
     call popup_close(a:winid)
@@ -107,10 +113,28 @@ function! s:press_bottom_bar(key) abort
   else
     call win_execute(winid, 'syntax match beatbanana_hit /1/')
   endif
-  call timer_start(150, function('s:restore_bottom_bar_highlight', [winid]))
+  call add(s:bar_timers, timer_start(150, function('s:restore_bottom_bar_highlight', [winid])))
 endfunction
 
-function! s:start() abort
+function! s:popups_clear() abort
+  for ids in values(s:bar_winid_set)
+    for id in ids
+      call popup_close(id)
+    endfor
+  endfor
+
+  for id in values(s:bottom_bar_winid_set)
+    call popup_close(id)
+  endfor
+endfunction
+
+function! s:timers_clear() abort
+  for t in s:bar_timers
+    call timer_stop(t)
+  endfor
+endfunction
+
+function! beatbanana#start() abort
   tabnew beatbanana
   let s:bufid = bufnr()
   let s:winid = win_getid()
@@ -129,17 +153,14 @@ function! s:start() abort
           \ }
     call s:make_bottom_bar(opt)
     exe printf('nnoremap <silent> <buffer> %s :call <SID>press_bottom_bar("%s")<CR>', press_key, press_key)
-    call timer_start(1000, function('s:make_bar', [opt]), {'repeat': -1})
+    call add(s:bar_timers, timer_start(1000, function('s:make_bar', [opt]), {'repeat': -1}))
     let col_pos += (col_len + 4)
   endfor
   mapclear! <buffer>
 endfunction
 
-func s:stop() abort
+func beatbanana#stop() abort
   exe printf('bw! %d', s:bufid)
-  call popup_clear()
-  call timer_stopall()
+  call s:popups_clear()
+  call s:timers_clear()
 endfunc
-
-command! Start call <SID>start()
-command! Stop call <SID>stop()
