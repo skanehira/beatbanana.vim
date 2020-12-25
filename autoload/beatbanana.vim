@@ -26,7 +26,7 @@ let s:bar_winid_set = {
 
 let s:bar_timers = []
 
-function! s:make_bar_text(word, col_len) abort
+function! s:make_block_text(word, col_len) abort
   let text = ''
   for i in range(a:col_len)
     let text .= a:word
@@ -34,8 +34,8 @@ function! s:make_bar_text(word, col_len) abort
   return text
 endfunction
 
-function! s:new_bar(opt, timer) abort
-  let text = s:make_bar_text('0', a:opt.col_len)
+function! s:new_block(opt, timer) abort
+  let text = s:make_block_text('0', a:opt.col_len)
   let winid = popup_create(text, {
         \ 'col': a:opt.col_pos,
         \ 'line': 1,
@@ -44,18 +44,18 @@ function! s:new_bar(opt, timer) abort
 
   call win_execute(winid, 'syntax match beatbanana_bar /0/')
 
-  let timer = timer_start(60, function("s:move_down", [winid, a:opt.press_key]), {
+  let timer = timer_start(60, function("s:move_block_down", [winid, a:opt.press_key]), {
         \ 'repeat': -1,
         \ })
   call add(s:bar_timers, timer)
   call add(s:bar_winid_set[a:opt.press_key], winid)
 endfunction
 
-function! s:make_bar(opt, timer) abort
-  call add(s:bar_timers, timer_start(rand(srand()) % 1000, function('s:new_bar', [a:opt])))
+function! s:make_block(opt, timer) abort
+  call add(s:bar_timers, timer_start(rand(srand()) % 1000, function('s:new_block', [a:opt])))
 endfunction
 
-function! s:move_down(winid, press_key, timer) abort
+function! s:move_block_down(winid, press_key, timer) abort
   let opt = popup_getpos(a:winid)
   if empty(opt)
     return
@@ -63,7 +63,7 @@ function! s:move_down(winid, press_key, timer) abort
   if opt.line is# s:winheight
     call timer_stop(a:timer)
     call popup_close(a:winid)
-    call s:delete_bar_winid(a:press_key, a:winid)
+    call s:delete_block_winid(a:press_key, a:winid)
     return
   endif
 
@@ -71,15 +71,15 @@ function! s:move_down(winid, press_key, timer) abort
   call popup_move(a:winid, opt)
 endfunction
 
-function! s:delete_bar_winid(press_key, winid) abort
+function! s:delete_block_winid(press_key, winid) abort
   let idx = index(s:bar_winid_set[a:press_key], a:winid)
   if idx isnot -1
     call remove(s:bar_winid_set[a:press_key], idx)
   endif
 endfunction
 
-function! s:make_bottom_bar(opt) abort
-  let text = s:make_bar_text('1', a:opt.col_len)
+function! s:make_bottom_block(opt) abort
+  let text = s:make_block_text('1', a:opt.col_len)
   let winid = popup_create(text, {
         \ 'col': a:opt.col_pos,
         \ 'line': s:winheight,
@@ -151,9 +151,9 @@ function! beatbanana#start() abort
           \ 'col_len': col_len,
           \ 'col_pos': col_pos,
           \ }
-    call s:make_bottom_bar(opt)
+    call s:make_bottom_block(opt)
     exe printf('nnoremap <silent> <buffer> %s :call <SID>press_bottom_bar("%s")<CR>', press_key, press_key)
-    call add(s:bar_timers, timer_start(1000, function('s:make_bar', [opt]), {'repeat': -1}))
+    call add(s:bar_timers, timer_start(1000, function('s:make_block', [opt]), {'repeat': -1}))
     let col_pos += (col_len + 4)
   endfor
   mapclear! <buffer>

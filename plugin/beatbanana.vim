@@ -7,5 +7,5 @@ if exists('loaded_beatbanana')
 endif
 let g:loaded_beatbanana = 1
 
-command! Start call beatbanana#start()
-command! Stop call beatbanana#stop()
+command! BeatBananaStart call beatbanana#start()
+command! BeatBananaStop call beatbanana#stop()
