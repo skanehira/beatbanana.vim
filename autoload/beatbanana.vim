@@ -14,25 +14,25 @@ let s:bottom_bar_winid_set = {}
 " ...
 " }
 
-" 
+"
 let s:bar_winid_set = {
-			\ 'a': [],
-			\ 's': [],
-			\ 'd': [],
-			\ 'f': [],
-			\ 'g': [],
-			\ 'h': [],
-			\ 'j': [],
-			\ 'k': [],
-			\ }
+      \ 'a': [],
+      \ 's': [],
+      \ 'd': [],
+      \ 'f': [],
+      \ 'g': [],
+      \ 'h': [],
+      \ 'j': [],
+      \ 'k': [],
+      \ }
 let s:notes_speed = 60
 
 if(get(g:, 'beatbanana_custom_bar_winid_set' , v:null) isnot v:null)
-	let s:bar_winid_set = g:beatbanana_custom_bar_winid_set
+  let s:bar_winid_set = g:beatbanana_custom_bar_winid_set
 endif
 
 if(get(g:, 'beatbanana_custom_notes_speed', v:null) isnot v:null)
-	let s:notes_speed = s:notes_speed - (g:beatbanana_custom_notes_speed * 2)
+  let s:notes_speed = s:notes_speed - (g:beatbanana_custom_notes_speed * 2)
 endif
 
 let s:bar_timers = []
@@ -113,13 +113,13 @@ function! s:collision_detection(key) abort
 
   let bar_winid = winids[0]
   let opt = popup_getpos(bar_winid)
-	let l:count = 1
-	for i in range(1, s:notes_speed)
-	let l:result = opt.line is# s:winheight - (l:count + i)
-		if l:result
-			return l:result
-		endif
-	endfor
+  let l:count = 1
+  for i in range(1, s:notes_speed)
+    let l:result = opt.line is# s:winheight - (l:count + i)
+    if l:result
+      return l:result
+    endif
+  endfor
   return opt.line is# s:winheight
 endfunction
 
@@ -156,7 +156,7 @@ function! beatbanana#start() abort
   let s:bottom_bar_keys = s:bar_winid_set->keys()
   let s:length = len(s:bar_winid_set)
   let s:length_half = s:length / 2
-  let col_len = s:winwidth 
+  let col_len = s:winwidth
         \ / s:length
         \ - s:length_half
   let col_pos = s:length_half
