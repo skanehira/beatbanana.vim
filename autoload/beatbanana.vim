@@ -13,16 +13,27 @@ let s:bottom_bar_winid_set = {}
 " 'k': [10, 11, 12, ...],
 " ...
 " }
+
+"
 let s:bar_winid_set = {
       \ 'a': [],
       \ 's': [],
       \ 'd': [],
       \ 'f': [],
+      \ 'g': [],
       \ 'h': [],
       \ 'j': [],
       \ 'k': [],
-      \ 'l': [],
       \ }
+let s:notes_speed = 60
+
+if(get(g:, 'beatbanana_custom_bar_winid_set' , v:null) isnot v:null)
+  let s:bar_winid_set = g:beatbanana_custom_bar_winid_set
+endif
+
+if(get(g:, 'beatbanana_custom_notes_speed', v:null) isnot v:null)
+  let s:notes_speed = s:notes_speed - (g:beatbanana_custom_notes_speed * 2)
+endif
 
 let s:bar_timers = []
 
@@ -44,7 +55,7 @@ function! s:new_block(opt, timer) abort
 
   call win_execute(winid, 'syntax match beatbanana_bar /0/')
 
-  let timer = timer_start(60, function("s:move_block_down", [winid, a:opt.press_key]), {
+  let timer = timer_start(s:notes_speed, function("s:move_block_down", [winid, a:opt.press_key]), {
         \ 'repeat': -1,
         \ })
   call add(s:bar_timers, timer)
@@ -102,8 +113,14 @@ function! s:collision_detection(key) abort
 
   let bar_winid = winids[0]
   let opt = popup_getpos(bar_winid)
-
-  return opt.line is# s:winheight || opt.line is# s:winheight - 1
+  let l:count = 1
+  for i in range(1, s:notes_speed)
+    let l:result = opt.line is# s:winheight - (l:count + i)
+    if l:result
+      return l:result
+    endif
+  endfor
+  return opt.line is# s:winheight
 endfunction
 
 function! s:press_bottom_bar(key) abort
@@ -122,10 +139,6 @@ function! s:popups_clear() abort
       call popup_close(id)
     endfor
   endfor
-
-  for id in values(s:bottom_bar_winid_set)
-    call popup_close(id)
-  endfor
 endfunction
 
 function! s:timers_clear() abort
@@ -140,11 +153,14 @@ function! beatbanana#start() abort
   let s:winid = win_getid()
   let s:winheight = winheight(s:winid) -1
   let s:winwidth = winwidth(s:winid)
-  let s:bottom_bar_keys = ['a', 's', 'd', 'f', 'h', 'j', 'k', 'l']
-
-  let col_len = s:winwidth / 8 - 4
-  let col_pos = 4
-  for i in range(8)
+  let s:bottom_bar_keys = s:bar_winid_set->keys()
+  let s:length = len(s:bar_winid_set)
+  let s:length_half = s:length / 2
+  let col_len = s:winwidth
+        \ / s:length
+        \ - s:length_half
+  let col_pos = s:length_half
+  for i in range(s:length)
     let press_key = s:bottom_bar_keys[i]
     let opt = {
           \ 'press_key': press_key,
@@ -154,7 +170,7 @@ function! beatbanana#start() abort
     call s:make_bottom_block(opt)
     exe printf('nnoremap <silent> <buffer> %s :call <SID>press_bottom_bar("%s")<CR>', press_key, press_key)
     call add(s:bar_timers, timer_start(1000, function('s:make_block', [opt]), {'repeat': -1}))
-    let col_pos += (col_len + 4)
+    let col_pos += (col_len + s:length_half)
   endfor
   mapclear! <buffer>
 endfunction
